@@ -16,6 +16,7 @@ export function MediaCard({
   showType,
   priority,
   className,
+  badge,
 }: {
   media: MediaSummary;
   rank?: number;
@@ -23,6 +24,8 @@ export function MediaCard({
   showType?: boolean;
   priority?: boolean;
   className?: string;
+  /** replaces the TMDB rating chip (e.g. the user's own rating) */
+  badge?: React.ReactNode;
 }) {
   const TypeIcon = media.media_type === "movie" ? Film : Tv;
   return (
@@ -42,7 +45,9 @@ export function MediaCard({
           fallback={<span className="font-medium text-muted">{media.title}</span>}
         />
         <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between p-2">
-          {media.vote_count >= 5 ? (
+          {badge ? (
+            <span className="rounded-md bg-black/70 px-1.5 py-0.5 text-xs font-semibold backdrop-blur-md">{badge}</span>
+          ) : media.vote_count >= 5 ? (
             <span className="rounded-md bg-black/70 px-1.5 py-0.5 backdrop-blur-md">
               <Rating value={media.vote_average} votes={media.vote_count} />
             </span>

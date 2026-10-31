@@ -13,6 +13,7 @@ import { MediaCard } from "@/components/media/media-card";
 import { PersonCard } from "@/components/media/person-card";
 import { TrailerButton } from "@/components/media/trailer-button";
 import { WhereToWatch } from "./where-to-watch";
+import { LibraryActions, TvTracker } from "@/components/library/server";
 import type { MediaDetails, MediaType } from "@/lib/tmdb/types";
 
 const languageNames = new Intl.DisplayNames(["es"], { type: "language" });
@@ -173,6 +174,11 @@ export async function DetailPage({ type, id }: { type: MediaType; id: number }) 
                 </a>
               )}
             </div>
+            <div className="mt-4 min-h-11">
+              <Suspense fallback={<div className="skeleton h-11 w-full max-w-md rounded-full" />}>
+                <LibraryActions media={m} />
+              </Suspense>
+            </div>
           </div>
         </div>
       </section>
@@ -184,7 +190,11 @@ export async function DetailPage({ type, id }: { type: MediaType; id: number }) 
             <WhereToWatch availability={m.availability} title={m.title} />
           </Suspense>
           {type === "tv" && <NextEpisode m={m} />}
-          {type === "tv" && m.seasons && m.seasons.length > 0 && <Seasons m={m} />}
+          {type === "tv" && m.seasons && m.seasons.length > 0 && (
+            <Suspense fallback={<Seasons m={m} />}>
+              <TvTracker show={m} />
+            </Suspense>
+          )}
         </div>
         <Facts m={m} type={type} />
       </div>

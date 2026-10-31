@@ -3,7 +3,8 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Home, Film, Tv, MonitorPlay } from "lucide-react";
+import { Search, Home, Film, Tv, Bookmark } from "lucide-react";
+import { UserMenu } from "./user-menu";
 import { Logo } from "./logo";
 import { openSearch } from "@/components/search/command-palette";
 import { cn } from "@/lib/cn";
@@ -12,7 +13,7 @@ const NAV = [
   { href: "/", label: "Inicio", icon: Home },
   { href: "/peliculas", label: "Películas", icon: Film },
   { href: "/series", label: "Series", icon: Tv },
-  { href: "/mis-plataformas", label: "Mis plataformas", short: "Plataformas", icon: MonitorPlay },
+  { href: "/mi-lista", label: "Mi lista", short: undefined as string | undefined, icon: Bookmark },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -82,21 +83,24 @@ export function Header() {
             : "border-b border-transparent bg-gradient-to-b from-black/70 to-transparent",
         )}
       >
-        <div className="container-page flex h-16 items-center gap-8">
+        <div className="container-page flex h-16 items-center gap-3 md:gap-8">
           <Logo />
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Principal">
+          <nav className="hidden items-center gap-1 md:flex md:-ml-4" aria-label="Principal">
             <WithPathname render={(p) => <DesktopLinks pathname={p} />} />
           </nav>
+          <div className="ml-auto flex items-center gap-3">
           <button
             type="button"
             onClick={openSearch}
-            className="ml-auto flex h-10 items-center gap-2.5 rounded-full border border-line bg-white/5 pl-3.5 pr-2 text-sm text-muted backdrop-blur-md transition hover:border-line-strong hover:text-fg md:w-72"
+            className="flex h-10 items-center gap-2.5 rounded-full border border-line bg-white/5 pl-3.5 pr-2 text-sm text-muted backdrop-blur-md transition hover:border-line-strong hover:text-fg md:w-72"
             aria-label="Buscar"
           >
             <Search className="size-4" />
             <span className="hidden md:inline">Buscar títulos, personas…</span>
             <kbd className="ml-auto hidden rounded-md border border-line px-1.5 py-0.5 text-[11px] md:block">⌘K</kbd>
           </button>
+          <UserMenu />
+          </div>
         </div>
       </header>
 

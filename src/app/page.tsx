@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import { Flame, Clapperboard, CalendarClock, Tv, Trophy, Sparkles, MonitorPlay, ArrowRight } from "lucide-react";
+import { Flame, Clapperboard, CalendarClock, Tv, Trophy, Sparkles, MonitorPlay, ArrowRight, PlayCircle, BookmarkCheck } from "lucide-react";
 import { Hero } from "@/components/home/hero";
 import { Rail } from "@/components/media/rail";
 import { MediaCard } from "@/components/media/media-card";
@@ -10,6 +10,9 @@ import { discover, getGenres, getHeroItems, getList, getProviders, getTrending, 
 import { getMyProviderIds } from "@/lib/prefs/server";
 import { DEFAULT_PROVIDER_IDS } from "@/lib/prefs/constants";
 import { formatShortDate } from "@/lib/format";
+import { getSession } from "@/lib/session";
+import { getContinueWatching, getWatchlistOnMyPlatforms } from "@/lib/library/queries";
+import { ProgressCard } from "@/components/library/progress-card";
 import type { MediaSummary, Provider } from "@/lib/tmdb/types";
 
 export default function HomePage() {
@@ -22,6 +25,10 @@ export default function HomePage() {
       <div className="relative z-10 -mt-10 md:-mt-16">
         <Suspense fallback={<RailSkeleton />}>
           <TrendingRail />
+        </Suspense>
+
+        <Suspense fallback={null}>
+          <PersonalRails />
         </Suspense>
 
         <Suspense
@@ -108,6 +115,52 @@ async function UpcomingRail() {
         <MediaCard key={m.id} media={m} subtitle={`Estreno ${formatShortDate(m.date)}`} />
       ))}
     </Rail>
+  );
+}
+
+/* ------------------------------------------------- signed-in user rails */
+
+async function PersonalRails() {
+  const session = await getSession();
+  if (!session) return null;
+  const userId = session.user.id;
+  const [progress, providerIds] = await Promise.all([getContinueWatching(userId), getMyProviderIds()]);
+  const available = await getWatchlistOnMyPlatforms(userId, providerIds);
+  const pending = progress.filter((p) => p.next).concat(progress.filter((p) => !p.next));
+
+  return (
+    <>
+      {pending.length > 0 && (
+        <Rail
+          title="Continúa viendo"
+          icon={<PlayCircle className="size-5 text-accent" />}
+          href="/mi-lista?vista=viendo"
+          itemClassName="w-[80%] sm:w-[45%] md:w-[33%] lg:w-[25%] xl:w-[22%]"
+        >
+          {pending.map((p) => (
+            <ProgressCard key={p.show.id} p={p} />
+          ))}
+        </Rail>
+      )}
+      {available.length > 0 && (
+        <Rail title="De tu lista, ya en tus plataformas" icon={<BookmarkCheck className="size-5 text-accent" />} href="/mi-lista">
+          {available.map(({ media, providers }) => (
+            <MediaCard
+              key={`${media.media_type}-${media.id}`}
+              media={media}
+              subtitle={`En ${providers.map((p) => p.provider_name).join(", ")}`}
+              badge={
+                <span className="flex items-center gap-1">
+                  {providers.slice(0, 3).map((p) => (
+                    <ProviderLogo key={p.provider_id} provider={p} size={16} className="rounded" />
+                  ))}
+                </span>
+              }
+            />
+          ))}
+        </Rail>
+      )}
+    </>
   );
 }
 
