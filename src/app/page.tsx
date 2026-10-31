@@ -1,16 +1,18 @@
-import { Suspense } from "react";
+import { Suspense, cache } from "react";
 import Link from "next/link";
 import { Flame, Clapperboard, CalendarClock, Tv, Trophy, Sparkles, MonitorPlay, ArrowRight, PlayCircle, BookmarkCheck } from "lucide-react";
 import { Hero } from "@/components/home/hero";
 import { TrailerCarousel } from "@/components/home/trailer-carousel";
+import { PlatformSpotlight } from "@/components/home/platform-spotlight";
+import { BentoSection, LandscapeCard, TimelineCard } from "@/components/home/sections";
+import { providerTheme } from "@/lib/tmdb/provider-theme";
 import { Rail } from "@/components/media/rail";
 import { MediaCard } from "@/components/media/media-card";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 import { RailSkeleton } from "@/components/ui/skeletons";
-import { discover, getGenres, getHeroItems, getList, getProviders, getTrending, getUpcomingMovies, getFeaturedTrailers } from "@/lib/tmdb/api";
+import { discover, getGenres, getHeroItems, getList, getProviders, getTrending, getUpcomingMovies, getFeaturedTrailers, getPlatformSpotlight } from "@/lib/tmdb/api";
 import { getMyProviderIds } from "@/lib/prefs/server";
 import { DEFAULT_PROVIDER_IDS } from "@/lib/prefs/constants";
-import { formatShortDate } from "@/lib/format";
 import { getSession } from "@/lib/session";
 import { getContinueWatching, getWatchlistOnMyPlatforms } from "@/lib/library/queries";
 import { ProgressCard } from "@/components/library/progress-card";
@@ -36,25 +38,32 @@ export default function HomePage() {
           <PersonalRails />
         </Suspense>
 
-        <Suspense
-          fallback={
-            <>
-              <RailSkeleton />
-              <RailSkeleton />
-            </>
-          }
-        >
-          <PlatformSection />
+        <Suspense fallback={<RailSkeleton />}>
+          <PlatformIntro />
+        </Suspense>
+
+        <Suspense fallback={<SpotlightSkeleton />}>
+          <SpotlightSlot slot={0} />
         </Suspense>
 
         <Suspense fallback={<RailSkeleton />}>
-          <ListRail type="movie" list="now_playing" title="En cines ahora" icon={<Clapperboard className="size-5 text-accent" />} />
+          <CinemaBento />
         </Suspense>
+
+        <Suspense fallback={<SpotlightSkeleton />}>
+          <SpotlightSlot slot={1} />
+        </Suspense>
+
         <Suspense fallback={<RailSkeleton />}>
           <UpcomingRail />
         </Suspense>
+
+        <Suspense fallback={<SpotlightSkeleton />}>
+          <SpotlightSlot slot={2} />
+        </Suspense>
+
         <Suspense fallback={<RailSkeleton />}>
-          <ListRail type="tv" list="on_the_air" title="Series en emisión" icon={<Tv className="size-5 text-accent" />} href="/series" />
+          <SeriesLandscape />
         </Suspense>
         <Suspense fallback={<RailSkeleton />}>
           <ListRail type="movie" list="top_rated" title="Imprescindibles de siempre" icon={<Trophy className="size-5 text-accent" />} />
@@ -120,9 +129,9 @@ async function ListRail({
 async function UpcomingRail() {
   const upcoming = await getUpcomingMovies();
   return (
-    <Rail title="Próximos estrenos en cines" icon={<CalendarClock className="size-5 text-accent" />}>
-      {upcoming.map((m) => (
-        <MediaCard key={m.id} media={m} subtitle={`Estreno ${formatShortDate(m.date)}`} />
+    <Rail eyebrow="Calendario" title="Próximos estrenos en cines" icon={<CalendarClock className="size-5 text-accent" />}>
+      {upcoming.map((m, i) => (
+        <TimelineCard key={m.id} media={m} showDate={i === 0 || upcoming[i - 1].date !== m.date} />
       ))}
     </Rail>
   );
@@ -176,25 +185,78 @@ async function PersonalRails() {
 
 /* ---------------------------------------------- personalised by platform */
 
-async function PlatformSection() {
-  const mine = await getMyProviderIds();
-  const all = await getProviders();
+/** Your platforms (or sensible defaults), resolved once per request. */
+const resolvePlatforms = cache(async () => {
+  const [mine, all] = await Promise.all([getMyProviderIds(), getProviders()]);
   const byId = new Map(all.map((p) => [p.provider_id, p]));
-  const selected = (mine.length ? mine : DEFAULT_PROVIDER_IDS)
-    .map((id) => byId.get(id))
-    .filter((p): p is Provider => !!p);
+  const selected = (mine.length ? mine : DEFAULT_PROVIDER_IDS).map((id) => byId.get(id)).filter((p): p is Provider => !!p);
+  return { mine, selected };
+});
 
+async function PlatformIntro() {
+  const { mine, selected } = await resolvePlatforms();
+  return mine.length ? <NewOnMyPlatforms providerIds={mine} providers={selected} /> : <PickPlatformsBanner providers={selected.slice(0, 8)} />;
+}
+
+/** The three showcases, de-duplicated so a title is only featured once. */
+const resolveSpotlights = cache(async () => {
+  const { selected } = await resolvePlatforms();
+  const providers = selected.slice(0, 3);
+  const lists = await Promise.all(providers.map((p) => getPlatformSpotlight(p.provider_id, 12)));
+  const used = new Set<string>();
+  return lists.map((items) =>
+    items
+      .filter((m) => {
+        const k = `${m.media_type}-${m.id}`;
+        if (used.has(k)) return false;
+        used.add(k);
+        return true;
+      })
+      .slice(0, 6),
+  );
+});
+
+async function SpotlightSlot({ slot }: { slot: number }) {
+  const { mine, selected } = await resolvePlatforms();
+  const provider = selected[slot];
+  if (!provider) return null;
+  const items = (await resolveSpotlights())[slot] ?? [];
   return (
-    <>
-      {mine.length ? (
-        <NewOnMyPlatforms providerIds={mine} providers={selected} />
-      ) : (
-        <PickPlatformsBanner providers={selected.slice(0, 8)} />
-      )}
-      {selected.slice(0, mine.length ? 4 : 3).map((p) => (
-        <ProviderRail key={p.provider_id} provider={p} />
+    <PlatformSpotlight
+      provider={provider}
+      theme={providerTheme(provider.provider_id)}
+      items={items}
+      eyebrow={mine.length ? "En tu plataforma" : "Lo más visto en"}
+    />
+  );
+}
+
+function SpotlightSkeleton() {
+  return (
+    <div className="container-page py-8 md:py-10">
+      <div className="skeleton min-h-[560px] rounded-[2rem] md:h-[78svh] md:max-h-[820px]" />
+    </div>
+  );
+}
+
+async function CinemaBento() {
+  const { results } = await getList("movie", "now_playing");
+  return <BentoSection eyebrow="Cartelera" title="En cines ahora" icon={<Clapperboard className="size-5 text-accent" />} items={results} badge="En cines" />;
+}
+
+async function SeriesLandscape() {
+  const { results } = await getList("tv", "on_the_air");
+  return (
+    <Rail
+      title="Series en emisión"
+      icon={<Tv className="size-5 text-accent" />}
+      href="/series"
+      itemClassName="w-[80%] sm:w-[45%] md:w-[32%] lg:w-[24%]"
+    >
+      {results.filter((m) => m.backdrop_path).map((m) => (
+        <LandscapeCard key={m.id} media={m} />
       ))}
-    </>
+    </Rail>
   );
 }
 
@@ -221,25 +283,6 @@ async function NewOnMyPlatforms({ providerIds, providers }: { providerIds: numbe
       }
       title="Novedades en tus plataformas"
       icon={<Sparkles className="size-5 text-accent" />}
-    >
-      {items.map((m) => (
-        <MediaCard key={`${m.media_type}-${m.id}`} media={m} showType />
-      ))}
-    </Rail>
-  );
-}
-
-async function ProviderRail({ provider }: { provider: Provider }) {
-  const [movies, shows] = await Promise.all([
-    discover({ type: "movie", providers: [provider.provider_id] }),
-    discover({ type: "tv", providers: [provider.provider_id] }),
-  ]);
-  const items = interleave(movies.results, shows.results).slice(0, 20);
-  return (
-    <Rail
-      title={`Lo más popular en ${provider.provider_name}`}
-      icon={<ProviderLogo provider={provider} size={24} className="rounded-md" />}
-      href={`/peliculas?plataformas=${provider.provider_id}`}
     >
       {items.map((m) => (
         <MediaCard key={`${m.media_type}-${m.id}`} media={m} showType />

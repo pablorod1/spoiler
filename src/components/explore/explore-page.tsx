@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { ExploreFilters } from "./filters";
+import { ExploreShell } from "./filters";
 import { InfiniteGrid } from "./infinite-grid";
 import { GridSkeleton } from "@/components/ui/skeletons";
 import { discover, getCurrentYear, getGenres, getProviders } from "@/lib/tmdb/api";
@@ -31,9 +31,8 @@ export function ExplorePage({
         fallback={
           <>
             <div className="mb-8 space-y-3">
+              <div className="skeleton h-12 w-full max-w-4xl rounded-2xl" />
               <div className="skeleton h-9 w-full max-w-2xl rounded-full" />
-              <div className="skeleton h-8 w-full max-w-3xl rounded-full" />
-              <div className="skeleton h-10 w-80 rounded-full" />
             </div>
             <GridSkeleton />
           </>
@@ -70,20 +69,18 @@ async function ExploreContent({ type, searchParams }: { type: MediaType; searchP
 
   return (
     <>
-      <div className="mb-8">
-        <ExploreFilters
-          basePath={basePath}
-          state={state}
-          providers={chips}
-          genres={genres}
-          myProviderIds={mine}
-          currentYear={currentYear}
-        />
-      </div>
-      <p className="mb-4 text-sm text-subtle">
-        {initial.total_results.toLocaleString("es-ES")} {type === "movie" ? "películas" : "series"}
-      </p>
-      <InfiniteGrid key={qs.toString()} initial={initial} endpoint={`/api/discover?${qs}`} />
+      <ExploreShell
+        basePath={basePath}
+        state={state}
+        providers={chips}
+        genres={genres}
+        myProviderIds={mine}
+        currentYear={currentYear}
+        total={initial.total_results}
+        noun={type === "movie" ? "películas" : "series"}
+      >
+        <InfiniteGrid key={qs.toString()} initial={initial} endpoint={`/api/discover?${qs}`} />
+      </ExploreShell>
     </>
   );
 }
