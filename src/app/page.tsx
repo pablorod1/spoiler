@@ -2,11 +2,12 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { Flame, Clapperboard, CalendarClock, Tv, Trophy, Sparkles, MonitorPlay, ArrowRight, PlayCircle, BookmarkCheck } from "lucide-react";
 import { Hero } from "@/components/home/hero";
+import { TrailerCarousel } from "@/components/home/trailer-carousel";
 import { Rail } from "@/components/media/rail";
 import { MediaCard } from "@/components/media/media-card";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 import { RailSkeleton } from "@/components/ui/skeletons";
-import { discover, getGenres, getHeroItems, getList, getProviders, getTrending, getUpcomingMovies } from "@/lib/tmdb/api";
+import { discover, getGenres, getHeroItems, getList, getProviders, getTrending, getUpcomingMovies, getFeaturedTrailers } from "@/lib/tmdb/api";
 import { getMyProviderIds } from "@/lib/prefs/server";
 import { DEFAULT_PROVIDER_IDS } from "@/lib/prefs/constants";
 import { formatShortDate } from "@/lib/format";
@@ -25,6 +26,10 @@ export default function HomePage() {
       <div className="relative z-10 -mt-10 md:-mt-16">
         <Suspense fallback={<RailSkeleton />}>
           <TrendingRail />
+        </Suspense>
+
+        <Suspense fallback={<div className="container-page py-12"><div className="skeleton h-[78svh] rounded-3xl md:h-[86svh]" /></div>}>
+          <TrailersSection />
         </Suspense>
 
         <Suspense fallback={null}>
@@ -67,6 +72,11 @@ async function HeroSection() {
   ]);
   const genreNames = Object.fromEntries([...movieGenres, ...tvGenres].map((g) => [g.id, g.name]));
   return <Hero items={items} genreNames={genreNames} />;
+}
+
+async function TrailersSection() {
+  const items = await getFeaturedTrailers(7);
+  return <TrailerCarousel items={items} />;
 }
 
 async function TrendingRail() {

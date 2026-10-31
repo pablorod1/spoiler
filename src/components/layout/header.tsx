@@ -81,7 +81,7 @@ export function Header() {
           "fixed inset-x-0 top-0 z-40 transition-colors duration-300",
           scrolled
             ? "border-b border-line bg-bg/80 backdrop-blur-xl"
-            : "border-b border-transparent bg-gradient-to-b from-black/70 to-transparent",
+            : "border-b border-transparent bg-gradient-to-b from-black/70 to-transparent bg-origin-border",
         )}
       >
         <div className="container-page flex h-16 items-center gap-3 md:gap-8">

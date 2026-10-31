@@ -440,3 +440,52 @@ export async function getCurrentYear(): Promise<number> {
   cacheLife("days");
   return new Date().getFullYear();
 }
+
+export interface FeaturedTrailer {
+  media: MediaSummary;
+  trailerKey: string;
+  logo: ImageAsset | null;
+  genres: string[];
+  runtime: number | null;
+  certification: string | null;
+  seasons?: number;
+}
+
+/**
+ * Big trailer carousel: upcoming releases + trending titles that are not in the hero,
+ * keeping only those with a YouTube trailer and a backdrop.
+ */
+export async function getFeaturedTrailers(limit = 7): Promise<FeaturedTrailer[]> {
+  "use cache";
+  cacheLife("hours");
+  const [hero, upcoming, trending] = await Promise.all([getHeroItems(6), getUpcomingMovies(), getTrending("all", "week")]);
+  const skip = new Set(hero.map((h) => `${h.media_type}-${h.id}`));
+  const seen = new Set<string>();
+  const candidates = [
+    ...[...upcoming].sort((a, b) => b.popularity - a.popularity).slice(0, 4),
+    ...trending.slice(6, 24),
+  ].filter((m) => {
+    const k = `${m.media_type}-${m.id}`;
+    if (skip.has(k) || seen.has(k) || !m.backdrop_path) return false;
+    seen.add(k);
+    return true;
+  });
+
+  const details = await Promise.all(candidates.slice(0, 16).map((m) => getDetails(m.media_type, m.id).catch(() => null)));
+  return details
+    .filter((d): d is MediaDetails => !!d && !!d.trailer && !!d.backdrop_path)
+    .slice(0, limit)
+    .map((d) => ({
+      media: {
+        id: d.id, media_type: d.media_type, title: d.title, original_title: d.original_title, overview: d.overview,
+        poster_path: d.poster_path, backdrop_path: d.backdrop_path, vote_average: d.vote_average, vote_count: d.vote_count,
+        popularity: d.popularity, date: d.date, genre_ids: d.genre_ids, original_language: d.original_language,
+      },
+      trailerKey: d.trailer!.key,
+      logo: d.logo,
+      genres: d.genres.slice(0, 3).map((g) => g.name),
+      runtime: d.runtime,
+      certification: d.certification,
+      seasons: d.number_of_seasons,
+    }));
+}

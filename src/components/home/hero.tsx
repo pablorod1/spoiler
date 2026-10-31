@@ -14,13 +14,12 @@ const INTERVAL = 9000;
 
 export function Hero({ items, genreNames }: { items: HeroItem[]; genreNames: Record<number, string> }) {
   const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    if (paused || items.length < 2) return;
+    if (items.length < 2) return;
     const t = setTimeout(() => setIndex((i) => (i + 1) % items.length), INTERVAL);
     return () => clearTimeout(t);
-  }, [index, paused, items.length]);
+  }, [index, items.length]);
 
   if (!items.length) return null;
   const current = items[index];
@@ -28,8 +27,6 @@ export function Hero({ items, genreNames }: { items: HeroItem[]; genreNames: Rec
   return (
     <section
       className="relative h-[78svh] min-h-[520px] w-full overflow-hidden md:h-[88svh]"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
       aria-roledescription="carrusel"
       aria-label="Destacados de la semana"
     >
@@ -120,14 +117,14 @@ export function Hero({ items, genreNames }: { items: HeroItem[]; genreNames: Rec
               className="group relative h-1 w-10 overflow-hidden rounded-full bg-white/20 md:w-14"
             >
               <span
-                key={`${index}-${paused}`}
+                key={index}
                 className={cn(
                   "absolute inset-y-0 left-0 rounded-full bg-white",
                   i <= index ? "w-full" : "w-0",
                   i < index && "opacity-60",
                 )}
                 style={
-                  i === index && !paused
+                  i === index
                     ? { animation: `hero-progress ${INTERVAL}ms linear both` }
                     : undefined
                 }
