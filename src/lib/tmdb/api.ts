@@ -490,32 +490,3 @@ export async function getFeaturedTrailers(limit = 7): Promise<FeaturedTrailer[]>
     }));
 }
 
-export interface SpotlightItem extends MediaSummary {
-  logo: ImageAsset | null;
-  genres: string[];
-}
-
-/** Most popular titles on a platform, enriched with title logos for the themed showcase. */
-export async function getPlatformSpotlight(providerId: number, limit = 6): Promise<SpotlightItem[]> {
-  "use cache";
-  cacheLife("hours");
-  const [movies, shows, movieGenres, tvGenres] = await Promise.all([
-    discover({ type: "movie", providers: [providerId] }),
-    discover({ type: "tv", providers: [providerId] }),
-    getGenres("movie"),
-    getGenres("tv"),
-  ]);
-  const names = new Map([...movieGenres, ...tvGenres].map((g) => [g.id, g.name]));
-  const mixed: MediaSummary[] = [];
-  for (let i = 0; i < 20; i++) {
-    if (shows.results[i]) mixed.push(shows.results[i]);
-    if (movies.results[i]) mixed.push(movies.results[i]);
-  }
-  const picks = mixed.filter((m) => m.backdrop_path && m.poster_path && m.overview).slice(0, limit);
-  return Promise.all(
-    picks.map(async (m) => {
-      const images = await tmdb<any>(`/${m.media_type}/${m.id}/images`, { include_image_language: "es,en,null" }).catch(() => null);
-      return { ...m, logo: pickLogo(images?.logos), genres: m.genre_ids.map((g) => names.get(g)).filter((g): g is string => !!g).slice(0, 3) };
-    }),
-  );
-}

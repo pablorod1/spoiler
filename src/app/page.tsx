@@ -3,14 +3,15 @@ import Link from "next/link";
 import { Flame, Clapperboard, CalendarClock, Tv, Trophy, Sparkles, MonitorPlay, ArrowRight, PlayCircle, BookmarkCheck } from "lucide-react";
 import { Hero } from "@/components/home/hero";
 import { TrailerCarousel } from "@/components/home/trailer-carousel";
-import { PlatformSpotlight } from "@/components/home/platform-spotlight";
+import { PlatformTopSection } from "@/components/home/platform-top";
+import { getPlatformTop } from "@/lib/tmdb/platform-top";
 import { BentoSection, LandscapeCard, TimelineCard } from "@/components/home/sections";
 import { providerTheme } from "@/lib/tmdb/provider-theme";
 import { Rail } from "@/components/media/rail";
 import { MediaCard } from "@/components/media/media-card";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 import { RailSkeleton } from "@/components/ui/skeletons";
-import { discover, getGenres, getHeroItems, getList, getProviders, getTrending, getUpcomingMovies, getFeaturedTrailers, getPlatformSpotlight } from "@/lib/tmdb/api";
+import { discover, getGenres, getHeroItems, getList, getProviders, getTrending, getUpcomingMovies, getFeaturedTrailers } from "@/lib/tmdb/api";
 import { getMyProviderIds } from "@/lib/prefs/server";
 import { DEFAULT_PROVIDER_IDS } from "@/lib/prefs/constants";
 import { getSession } from "@/lib/session";
@@ -65,6 +66,10 @@ export default function HomePage() {
         <Suspense fallback={<RailSkeleton />}>
           <SeriesLandscape />
         </Suspense>
+        <Suspense fallback={<SpotlightSkeleton />}>
+          <SpotlightSlot slot={3} />
+        </Suspense>
+
         <Suspense fallback={<RailSkeleton />}>
           <ListRail type="movie" list="top_rated" title="Imprescindibles de siempre" icon={<Trophy className="size-5 text-accent" />} />
         </Suspense>
@@ -198,45 +203,16 @@ async function PlatformIntro() {
   return mine.length ? <NewOnMyPlatforms providerIds={mine} providers={selected} /> : <PickPlatformsBanner providers={selected.slice(0, 8)} />;
 }
 
-/** The three showcases, de-duplicated so a title is only featured once. */
-const resolveSpotlights = cache(async () => {
-  const { selected } = await resolvePlatforms();
-  const providers = selected.slice(0, 3);
-  const lists = await Promise.all(providers.map((p) => getPlatformSpotlight(p.provider_id, 12)));
-  const used = new Set<string>();
-  return lists.map((items) =>
-    items
-      .filter((m) => {
-        const k = `${m.media_type}-${m.id}`;
-        if (used.has(k)) return false;
-        used.add(k);
-        return true;
-      })
-      .slice(0, 6),
-  );
-});
-
 async function SpotlightSlot({ slot }: { slot: number }) {
-  const { mine, selected } = await resolvePlatforms();
+  const { selected } = await resolvePlatforms();
   const provider = selected[slot];
   if (!provider) return null;
-  const items = (await resolveSpotlights())[slot] ?? [];
-  return (
-    <PlatformSpotlight
-      provider={provider}
-      theme={providerTheme(provider.provider_id)}
-      items={items}
-      eyebrow={mine.length ? "En tu plataforma" : "Lo más visto en"}
-    />
-  );
+  const top = await getPlatformTop(provider.provider_id);
+  return <PlatformTopSection provider={provider} theme={providerTheme(provider.provider_id)} top={top} />;
 }
 
 function SpotlightSkeleton() {
-  return (
-    <div className="container-page py-8 md:py-10">
-      <div className="skeleton min-h-[560px] rounded-[2rem] md:h-[78svh] md:max-h-[820px]" />
-    </div>
-  );
+  return <div className="skeleton my-6 min-h-[88svh] md:my-10 md:min-h-[94svh]" />;
 }
 
 async function CinemaBento() {
