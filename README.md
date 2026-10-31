@@ -1,54 +1,49 @@
-# Astro Starter Kit: Basics
+# Spoiler
+
+**Spoiler: ya sabes qué ver.** Qué ver, dónde verlo y por qué te va a gustar. Descubre películas y series, mira en qué plataformas están en España y filtra todo por **tus** servicios de streaming.
+
+## Stack
+
+- **Next.js 16** (App Router, Cache Components + Partial Prefetching), React 19, TypeScript
+- **Tailwind CSS v4** con tokens de diseño en `src/app/globals.css`
+- Datos de **TMDB** (disponibilidad por JustWatch vía TMDB), solo desde el servidor y con caché (`'use cache'`)
+- **Turso** (libSQL) + **Drizzle ORM**; en local, SQLite en `./local.db`
+- **Better Auth**: email/contraseña y Google (opcional)
+- Imágenes servidas desde el CDN de TMDB mediante un loader de `next/image` (`src/lib/images/tmdb-loader.ts`)
+
+## Desarrollo
 
 ```sh
-npm create astro@latest -- --template basics
+cp .env.example .env.local   # TMDB + BETTER_AUTH_SECRET
+pnpm install
+pnpm db:migrate              # crea ./local.db
+pnpm dev
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
+## Estructura
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
-
-![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── components/
-│   │   └── Card.astro
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
+```
+src/
+  app/                    rutas (/, /peliculas, /series, /pelicula/[id], /serie/[id],
+                          /persona/[id], /buscar, /mis-plataformas, /api/*)
+  components/
+    layout/               cabecera, tab bar móvil, footer
+    home/ media/ detail/  hero, tarjetas, carriles, fichas
+    explore/              filtros + grid con scroll infinito
+    search/               paleta de búsqueda (⌘K / "/")
+    platforms/            selector de "Mis plataformas"
+  lib/
+    tmdb/                 cliente, normalización y consultas cacheadas
+    prefs/                Mis plataformas (cookie en invitado, BD con sesión)
+    db/                   esquema Drizzle (auth + biblioteca)
+    library/              acciones, consultas y progreso de series
+    auth.ts session.ts    Better Auth (servidor) y sesión por petición
+    explore.ts            estado de filtros <-> URL compartible
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Roadmap
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- [x] Fase 1 — nueva arquitectura, rediseño, Mis plataformas, explorador, fichas, personas, búsqueda
+- [x] Fase 2 — cuentas (Better Auth + Turso/Drizzle): mi lista, vistas, valoraciones, favoritas, seguimiento de series por episodio, "Continúa viendo", "De tu lista, ya en tus plataformas"
+- [ ] Fase 3 — social: listas públicas, amigos, feed, reseñas
+- [ ] Fase 4 — alertas (llega/se va de tu plataforma), recomendaciones personalizadas, búsqueda en lenguaje natural, "¿qué vemos esta noche?" en grupo
