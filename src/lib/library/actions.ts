@@ -6,6 +6,7 @@ import { db } from "@/lib/db/client";
 import { episodeWatch, libraryItem, LIBRARY_STATUSES } from "@/lib/db/schema";
 import { getUserId } from "@/lib/session";
 import type { ActionResult, LibraryStatus, MediaSnapshot } from "./types";
+import { logActivity, removeActivity } from "@/lib/social/activity";
 
 function validSnapshot(m: MediaSnapshot) {
   return (
@@ -44,6 +45,10 @@ export async function setStatus(m: MediaSnapshot, status: LibraryStatus | null):
     status,
     watchedAt: status === "completed" ? new Date() : undefined,
   });
+  if (status === "watchlist") await logActivity(userId, "watchlist", m);
+  else await removeActivity(userId, ["watchlist"], m);
+  if (status === "completed") await logActivity(userId, m.mediaType === "movie" ? "watched" : "finished_show", m);
+  else await removeActivity(userId, ["watched", "finished_show"], m);
   revalidatePath("/mi-lista");
   return { ok: true };
 }
@@ -64,6 +69,11 @@ export async function setRating(m: MediaSnapshot, rating: number | null): Promis
     rating,
     ...(markSeen ? { status: "completed" as const, watchedAt: new Date() } : {}),
   });
+  if (rating === null) await removeActivity(userId, ["rated"], m);
+  else {
+    if (markSeen) await removeActivity(userId, ["watchlist"], m);
+    await logActivity(userId, "rated", m, { rating });
+  }
   revalidatePath("/mi-lista");
   return { ok: true };
 }
@@ -73,6 +83,8 @@ export async function toggleFavorite(m: MediaSnapshot, favorite: boolean): Promi
   if (!userId) return { ok: false, error: "auth" };
   if (!validSnapshot(m)) return { ok: false, error: "invalid" };
   await upsert(userId, m, { favorite });
+  if (favorite) await logActivity(userId, "favorite", m);
+  else await removeActivity(userId, ["favorite"], m);
   revalidatePath("/mi-lista");
   return { ok: true };
 }
@@ -139,6 +151,34 @@ export async function setEpisodesWatched(
       watchedAt: status === "completed" ? new Date() : undefined,
     });
   }
+
+  if (watched) {
+    const last = [...episodes].sort((a, b) => a.season - b.season || a.episode - b.episode).at(-1)!;
+    await removeActivity(userId, ["watchlist"], m);
+    await logActivity(userId, "episodes", m, { data: { count: episodes.length, season: last.season, episode: last.episode } });
+    if (status === "completed" && current?.status !== "completed") await logActivity(userId, "finished_show", m);
+  } else if (watchedCount === 0) {
+    await removeActivity(userId, ["episodes", "finished_show"], m);
+  }
   revalidatePath("/mi-lista");
   return { ok: true, watchedCount };
+}
+
+/* ---------------------------------------------------------------- reviews */
+
+export async function saveReview(m: MediaSnapshot, text: string | null, spoiler: boolean): Promise<ActionResult> {
+  const userId = await getUserId();
+  if (!userId) return { ok: false, error: "auth" };
+  const clean = text?.trim() ?? "";
+  if (!validSnapshot(m) || clean.length > 5000) return { ok: false, error: "invalid" };
+
+  if (!clean) {
+    await upsert(userId, m, { review: null, reviewSpoiler: false, reviewedAt: null });
+    await removeActivity(userId, ["review"], m);
+  } else {
+    await upsert(userId, m, { review: clean, reviewSpoiler: spoiler, reviewedAt: new Date() });
+    await logActivity(userId, "review", m);
+  }
+  revalidatePath("/mi-lista");
+  return { ok: true };
 }

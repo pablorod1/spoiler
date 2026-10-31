@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Home, Film, Tv, Bookmark } from "lucide-react";
+import { Search, Home, Film, Tv, Bookmark, Activity } from "lucide-react";
 import { UserMenu } from "./user-menu";
 import { Logo } from "./logo";
 import { openSearch } from "@/components/search/command-palette";
@@ -13,6 +13,7 @@ const NAV = [
   { href: "/", label: "Inicio", icon: Home },
   { href: "/peliculas", label: "Películas", icon: Film },
   { href: "/series", label: "Series", icon: Tv },
+  { href: "/actividad", label: "Actividad", short: undefined as string | undefined, icon: Activity },
   { href: "/mi-lista", label: "Mi lista", short: undefined as string | undefined, icon: Bookmark },
 ];
 
@@ -109,7 +110,7 @@ export function Header() {
         className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden"
         aria-label="Principal móvil"
       >
-        <ul className="grid grid-cols-4">
+        <ul className="grid grid-cols-5">
           <WithPathname render={(p) => <MobileLinks pathname={p} />} />
         </ul>
       </nav>

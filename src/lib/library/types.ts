@@ -17,6 +17,8 @@ export interface LibraryEntry {
   status: LibraryStatus | null;
   rating: number | null;
   favorite: boolean;
+  review?: string | null;
+  reviewSpoiler?: boolean;
 }
 
 export type ActionResult = { ok: true } | { ok: false; error: "auth" | "invalid" };

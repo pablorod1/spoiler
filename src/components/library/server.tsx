@@ -3,6 +3,8 @@ import { getEntry, getWatchedEpisodes, airedEpisodes } from "@/lib/library/queri
 import { mediaHref } from "@/lib/tmdb/normalize";
 import { LibraryControls } from "./library-controls";
 import { SeasonTracker } from "./season-tracker";
+import { AddToList, ReviewButton } from "@/components/social/title-tools";
+import { getMyListsForTitle } from "@/lib/social/queries";
 import type { MediaSnapshot } from "@/lib/library/types";
 import type { MediaDetails } from "@/lib/tmdb/types";
 
@@ -20,8 +22,20 @@ const loginFor = (m: MediaDetails) => `/entrar?volver=${encodeURIComponent(media
 /** Request-time (session): render inside <Suspense>. */
 export async function LibraryActions({ media }: { media: MediaDetails }) {
   const session = await getSession();
-  const entry = session ? await getEntry(session.user.id, media.media_type, media.id) : null;
-  return <LibraryControls media={toSnapshot(media)} initial={entry} loginHref={session ? undefined : loginFor(media)} />;
+  const [entry, lists] = session
+    ? await Promise.all([getEntry(session.user.id, media.media_type, media.id), getMyListsForTitle(session.user.id, media.media_type, media.id)])
+    : [null, []];
+  const snapshot = toSnapshot(media);
+  const loginHref = session ? undefined : loginFor(media);
+  return (
+    <div className="space-y-3">
+      <LibraryControls media={snapshot} initial={entry} loginHref={loginHref} />
+      <div className="flex flex-wrap gap-3">
+        <AddToList media={snapshot} lists={lists} loginHref={loginHref} />
+        <ReviewButton media={snapshot} initial={{ review: entry?.review ?? null, spoiler: entry?.reviewSpoiler ?? false }} loginHref={loginHref} />
+      </div>
+    </div>
+  );
 }
 
 export async function TvTracker({ show }: { show: MediaDetails }) {

@@ -42,3 +42,17 @@ export function age(birthday: string | null, deathday?: string | null) {
   if (end.getMonth() < b.getMonth() || (end.getMonth() === b.getMonth() && end.getDate() < b.getDate())) a--;
   return a;
 }
+
+const rtf = new Intl.RelativeTimeFormat("es-ES", { numeric: "auto" });
+/** "hace 5 min", "ayer"… `now` is passed in so callers control when the clock is read. */
+export function timeAgo(date: Date | number, now: number) {
+  const diff = (new Date(date).getTime() - now) / 1000;
+  const abs = Math.abs(diff);
+  if (abs < 60) return "ahora";
+  if (abs < 3600) return rtf.format(Math.round(diff / 60), "minute");
+  if (abs < 86400) return rtf.format(Math.round(diff / 3600), "hour");
+  if (abs < 86400 * 7) return rtf.format(Math.round(diff / 86400), "day");
+  if (abs < 86400 * 30) return rtf.format(Math.round(diff / (86400 * 7)), "week");
+  if (abs < 86400 * 365) return rtf.format(Math.round(diff / (86400 * 30)), "month");
+  return rtf.format(Math.round(diff / (86400 * 365)), "year");
+}

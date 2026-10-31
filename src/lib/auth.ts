@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { db, schema } from "@/lib/db/client";
+import { createProfileFor } from "@/lib/social/profile";
 
 const google =
   process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
@@ -18,6 +19,9 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 60, // 60 días
     cookieCache: { enabled: true, maxAge: 5 * 60 },
+  },
+  databaseHooks: {
+    user: { create: { after: async (u) => createProfileFor(u) } },
   },
   plugins: [nextCookies()],
 });

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bookmark, LogOut, MonitorPlay } from "lucide-react";
+import { Bookmark, LogOut, MonitorPlay, Settings, UserRound } from "lucide-react";
 import { signOut, useSession } from "@/lib/auth-client";
 
 export function UserMenu() {
@@ -68,8 +68,10 @@ export function UserMenu() {
           </div>
           <div className="my-1 h-px bg-line" />
           {[
+            { href: "/perfil", label: "Mi perfil", icon: UserRound },
             { href: "/mi-lista", label: "Mi lista", icon: Bookmark },
             { href: "/mis-plataformas", label: "Mis plataformas", icon: MonitorPlay },
+            { href: "/ajustes", label: "Ajustes", icon: Settings },
           ].map(({ href, label, icon: Icon }) => (
             <Link
               key={href}

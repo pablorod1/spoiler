@@ -14,6 +14,7 @@ import { PersonCard } from "@/components/media/person-card";
 import { TrailerButton } from "@/components/media/trailer-button";
 import { WhereToWatch } from "./where-to-watch";
 import { LibraryActions, TvTracker } from "@/components/library/server";
+import { TitleSocial } from "@/components/social/title-social";
 import type { MediaDetails, MediaType } from "@/lib/tmdb/types";
 
 const languageNames = new Intl.DisplayNames(["es"], { type: "language" });
@@ -195,6 +196,9 @@ export async function DetailPage({ type, id }: { type: MediaType; id: number }) 
               <TvTracker show={m} />
             </Suspense>
           )}
+          <Suspense fallback={<div className="skeleton h-32 rounded-2xl" />}>
+            <TitleSocial media={m} />
+          </Suspense>
         </div>
         <Facts m={m} type={type} />
       </div>
