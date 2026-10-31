@@ -241,7 +241,7 @@ export function GenericTop({
         </div>
 
         {/* ranked strip */}
-        <div ref={strip} className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto scroll-smooth px-4 pb-2 pt-3 md:-mx-2 md:px-2" role="tablist" aria-label={`Ranking ${tab === "tv" ? "series" : "películas"}`}>
+        <div ref={strip} className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto overflow-y-hidden scroll-smooth px-4 pb-2 pt-3 md:-mx-2 md:px-2" role="tablist" aria-label={`Ranking ${tab === "tv" ? "series" : "películas"}`}>
           {items.map((it, i) => {
             const on = it === current;
             return (

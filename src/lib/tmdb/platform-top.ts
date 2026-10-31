@@ -90,9 +90,12 @@ async function matchTitle(rawTitle: string, type: MediaType): Promise<MediaSumma
   if (!results.length) return null;
   const n = norm(title);
   const names = (r: any) => [r.title, r.name, r.original_title, r.original_name].filter(Boolean).map((t: string) => norm(t));
-  const exact = results.find((r) => names(r).includes(n));
-  const close = n.length >= 6 ? results.find((r) => names(r).some((t: string) => t.startsWith(n) || n.startsWith(t))) : undefined;
-  const hit = exact ?? close;
+  const isExact = (r: any) => names(r).includes(n);
+  const isClose = (r: any) => n.length >= 6 && names(r).some((t: string) => t.startsWith(n) || n.startsWith(t));
+  // Brand-new seasons sometimes get their own empty TMDB entry ("Cyberpunk: Edgerunners 2",
+  // no images): prefer a match with artwork, which falls back to the parent series.
+  const candidates = [...results.filter(isExact), ...results.filter((r) => !isExact(r) && isClose(r))];
+  const hit = candidates.find((r) => r.backdrop_path) ?? candidates[0];
   if (!hit) return null;
   const es = await tmdb<any>(`/${type}/${hit.id}`).catch(() => null);
   return es ? toSummary(es, type) : null;

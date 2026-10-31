@@ -65,6 +65,8 @@ export interface Video {
   official: boolean;
   iso_639_1: string;
   published_at: string;
+  /** Upload resolution reported by TMDB (360, 480, 720, 1080, 2160) */
+  size?: number;
 }
 
 export interface CastMember {

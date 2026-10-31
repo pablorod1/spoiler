@@ -34,11 +34,14 @@ export function toSummaries(list: any[] | undefined, fallbackType?: MediaType) {
 /** Best trailer: official Spanish trailer > Spanish trailer > official English > any YouTube video */
 export function pickTrailer(videos: Video[]): Video | null {
   const yt = videos.filter((v) => v.site === "YouTube");
+  // Official uploads (studio channels) outrank language: unofficial re-uploads, even Spanish ones,
+  // are usually heavily compressed and get pulled or region-blocked more often.
   const score = (v: Video) =>
     (v.type === "Trailer" ? 8 : v.type === "Teaser" ? 4 : 0) +
+    (v.official ? 4 : 0) +
     (v.iso_639_1 === "es" ? 2 : 0) +
-    (v.official ? 1 : 0);
-  return yt.sort((a, b) => score(b) - score(a))[0] ?? null;
+    ((v.size ?? 0) >= 1080 ? 1 : (v.size ?? 1080) < 720 ? -3 : 0);
+  return yt.sort((a, b) => score(b) - score(a) || (b.size ?? 0) - (a.size ?? 0))[0] ?? null;
 }
 
 export function pickLogo(logos: ImageAsset[] | undefined): ImageAsset | null {

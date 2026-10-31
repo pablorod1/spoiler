@@ -111,6 +111,15 @@ body {
     transform: none;
   }
 }
+@keyframes ken-burns {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: none;
+  }
+}
+
 .animate-fade-up {
   animation: fade-up 0.6s var(--ease-out-expo) both;
 }
