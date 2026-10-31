@@ -6,7 +6,7 @@ import { PlatformPicker } from "@/components/platforms/platform-picker";
 
 export const metadata: Metadata = {
   title: "Mis plataformas",
-  description: "Elige tus servicios de streaming y Pickflix te mostrará primero lo que ya puedes ver.",
+  description: "Elige tus servicios de streaming y Whatcher te mostrará primero lo que ya puedes ver.",
 };
 
 export default function Page() {

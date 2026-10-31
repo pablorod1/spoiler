@@ -1,6 +1,6 @@
-# Pickflix
+# Whatcher
 
-**Pickflix: elige qué ver y descubre dónde verlo.** Qué ver, dónde verlo y por qué te va a gustar. Descubre películas y series, mira en qué plataformas están en España y filtra todo por **tus** servicios de streaming.
+**Whatcher — What to watch. Where to watch.** Qué ver, dónde verlo y por qué te va a gustar. Descubre películas y series, mira en qué plataformas están en España y filtra todo por **tus** servicios de streaming.
 
 ## Stack
 

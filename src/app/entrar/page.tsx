@@ -22,7 +22,7 @@ export default function Page({ searchParams }: PageProps<"/entrar">) {
       <section className="hidden md:block">
         <LogoMark className="mb-6 size-12" />
         <h1 className="text-4xl font-black tracking-tight text-balance lg:text-5xl">
-          Pickflix: <span className="text-accent">elige qué ver sin perder la noche buscando.</span>
+          <span className="text-accent">Qué ver.</span> Dónde verlo.
         </h1>
         <ul className="mt-8 space-y-4">
           {PERKS.map(({ icon: Icon, text }) => (
@@ -34,7 +34,7 @@ export default function Page({ searchParams }: PageProps<"/entrar">) {
         </ul>
       </section>
       <section className="flex flex-col items-center">
-        <h1 className="mb-6 text-2xl font-black tracking-tight md:hidden">Entra en Pickflix</h1>
+        <h1 className="mb-6 text-2xl font-black tracking-tight md:hidden">Entra en Whatcher</h1>
         <Suspense fallback={<div className="skeleton h-80 w-full max-w-sm rounded-2xl" />}>
           <Form searchParams={searchParams} />
         </Suspense>

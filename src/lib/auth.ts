@@ -10,7 +10,7 @@ const google =
     : undefined;
 
 export const auth = betterAuth({
-  appName: "Pickflix",
+  appName: "Whatcher",
   baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_SITE_URL,
   database: drizzleAdapter(db, { provider: "sqlite", schema }),
   emailAndPassword: { enabled: true, minPasswordLength: 8, autoSignIn: true },

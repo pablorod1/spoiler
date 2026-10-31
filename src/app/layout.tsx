@@ -10,11 +10,11 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: { default: "Pickflix — Qué ver y dónde verlo", template: "%s · Pickflix" },
+  title: { default: "Whatcher — Qué ver y dónde verlo", template: "%s · Whatcher" },
   description:
     "Descubre películas y series, mira en qué plataforma están en España y encuentra qué ver esta noche en tus servicios de streaming.",
-  applicationName: "Pickflix",
-  openGraph: { type: "website", locale: "es_ES", siteName: "Pickflix" },
+  applicationName: "Whatcher",
+  openGraph: { type: "website", locale: "es_ES", siteName: "Whatcher" },
 };
 
 export const viewport: Viewport = {

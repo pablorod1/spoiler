@@ -9,7 +9,7 @@ import { year } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import type { MediaSummary, PersonSummary } from "@/lib/tmdb/types";
 
-export const OPEN_SEARCH_EVENT = "pickflix:open-search";
+export const OPEN_SEARCH_EVENT = "whatcher:open-search";
 export const openSearch = () => window.dispatchEvent(new Event(OPEN_SEARCH_EVENT));
 
 type Item =
