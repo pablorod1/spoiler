@@ -3,11 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Search, Film, Tv, User, ArrowRight, LoaderCircle, CornerDownLeft } from "lucide-react";
+import { Search, Film, Tv, User, UsersRound, ArrowRight, LoaderCircle, CornerDownLeft } from "lucide-react";
+import { Avatar } from "@/components/social/avatar";
 import { mediaHref, personHref } from "@/lib/tmdb/normalize";
 import { year } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import type { MediaSummary, PersonSummary } from "@/lib/tmdb/types";
+
+type PublicUserLite = { userId: string; username: string; name: string; image: string | null };
 
 export const OPEN_SEARCH_EVENT = "whatcher:open-search";
 export const openSearch = () => window.dispatchEvent(new Event(OPEN_SEARCH_EVENT));
@@ -15,6 +18,7 @@ export const openSearch = () => window.dispatchEvent(new Event(OPEN_SEARCH_EVENT
 type Item =
   | { kind: "media"; href: string; data: MediaSummary }
   | { kind: "person"; href: string; data: PersonSummary }
+  | { kind: "user"; href: string; data: PublicUserLite }
   | { kind: "all"; href: string };
 
 export function CommandPalette() {
@@ -56,9 +60,10 @@ export function CommandPalette() {
     const t = setTimeout(async () => {
       try {
         const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: ctrl.signal });
-        const data: { media: MediaSummary[]; people: PersonSummary[] } = await res.json();
+        const data: { media: MediaSummary[]; people: PersonSummary[]; users?: PublicUserLite[] } = await res.json();
         setResults({ q, items: [
           ...data.media.map((m) => ({ kind: "media" as const, href: mediaHref(m), data: m })),
+          ...(data.users ?? []).map((u) => ({ kind: "user" as const, href: `/u/${u.username}`, data: u })),
           ...data.people.map((p) => ({ kind: "person" as const, href: personHref(p), data: p })),
           { kind: "all" as const, href: `/buscar?q=${encodeURIComponent(q)}` },
         ] });
@@ -116,7 +121,7 @@ export function CommandPalette() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="Películas, series, actores…"
+          placeholder="Películas, series, actores o @usuarios…"
           className="h-14 w-full bg-transparent text-base outline-none placeholder:text-subtle"
           role="combobox"
           aria-expanded={items.length > 0}
@@ -158,6 +163,18 @@ export function CommandPalette() {
                     <ArrowRight className="size-4" />
                   </span>
                   <span className="text-sm">Ver todos los resultados de “{query.trim()}”</span>
+                </>
+              ) : item.kind === "user" ? (
+                <>
+                  <span className="grid h-12 w-8 place-items-center">
+                    <Avatar user={item.data} size={32} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">{item.data.name}</span>
+                    <span className="flex items-center gap-1.5 text-xs text-subtle">
+                      <UsersRound className="size-3" /> @{item.data.username} · Perfil en Whatcher
+                    </span>
+                  </span>
                 </>
               ) : (
                 <>

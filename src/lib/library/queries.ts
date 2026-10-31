@@ -12,7 +12,7 @@ export type LibraryRow = typeof libraryItem.$inferSelect;
 export async function getEntry(userId: string, type: MediaType, tmdbId: number): Promise<LibraryEntry | null> {
   const row = await db.query.libraryItem.findFirst({
     where: and(eq(libraryItem.userId, userId), eq(libraryItem.mediaType, type), eq(libraryItem.tmdbId, tmdbId)),
-    columns: { status: true, rating: true, favorite: true },
+    columns: { status: true, rating: true, favorite: true, review: true, reviewSpoiler: true },
   });
   return row ?? null;
 }

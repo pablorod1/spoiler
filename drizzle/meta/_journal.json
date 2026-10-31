@@ -8,6 +8,13 @@
       "when": 1793460791093,
       "tag": "0000_noisy_risque",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1793466079873,
+      "tag": "0001_zippy_the_santerians",
+      "breakpoints": true
     }
   ]
 }
