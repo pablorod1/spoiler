@@ -20,7 +20,7 @@ export default function Page({ searchParams }: PageProps<"/entrar">) {
   return (
     <main className="container-page grid min-h-[85vh] items-center gap-12 pb-10 pt-24 md:grid-cols-2 md:pt-28">
       <section className="hidden md:block">
-        <LogoMark className="mb-6 size-12" />
+        <LogoMark className="mb-6 h-16" />
         <h1 className="text-4xl font-black tracking-tight text-balance lg:text-5xl">
           <span className="text-accent">Qué ver.</span> Dónde verlo.
         </h1>
