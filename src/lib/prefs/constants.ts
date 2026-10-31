@@ -1,4 +1,4 @@
-export const PROVIDERS_COOKIE = "pmdb_providers";
+export const PROVIDERS_COOKIE = "spoiler_providers";
 
 /** Sensible defaults for Spain when the user hasn't picked yet */
 export const DEFAULT_PROVIDER_IDS = [8, 119, 337, 1899, 350, 2241, 1773, 63] // Netflix, Prime, Disney+, Max, Apple TV, Movistar Plus+, SkyShowtime, Filmin;

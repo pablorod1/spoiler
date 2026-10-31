@@ -16,7 +16,7 @@ export async function detailMetadata(type: MediaType, id: number | null): Promis
     description,
     alternates: { canonical: mediaHref(m) },
     openGraph: {
-      title: `${title} — ${kind} · pmdb`,
+      title: `${title} — ${kind} · Spoiler`,
       description,
       images: m.backdrop_path ? [`https://image.tmdb.org/t/p/w1280${m.backdrop_path}`] : undefined,
     },

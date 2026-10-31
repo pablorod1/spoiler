@@ -1,6 +1,6 @@
-# pmdb
+# Spoiler
 
-Qué ver, dónde verlo y por qué te va a gustar. Descubre películas y series, mira en qué plataformas están en España y filtra todo por **tus** servicios de streaming.
+**Spoiler: ya sabes qué ver.** Qué ver, dónde verlo y por qué te va a gustar. Descubre películas y series, mira en qué plataformas están en España y filtra todo por **tus** servicios de streaming.
 
 ## Stack
 

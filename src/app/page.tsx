@@ -199,7 +199,7 @@ function PickPlatformsBanner({ providers }: { providers: Provider[] }) {
         <div className="flex-1">
           <h2 className="text-lg font-semibold tracking-tight md:text-xl">¿Qué plataformas tienes?</h2>
           <p className="mt-1 text-sm text-muted">
-            Márcalas una vez y pmdb te enseñará primero lo que puedes ver sin pagar más.
+            Márcalas una vez y Spoiler te enseñará primero lo que puedes ver sin pagar más.
           </p>
         </div>
         <div className="flex items-center -space-x-2">
